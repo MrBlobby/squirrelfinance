@@ -14,7 +14,7 @@ pragma solidity 0.5.8;
     ERC20 nuts = ERC20(0x8893D5fA71389673C5c4b9b3cb4EE1ba71207556);
 
     mapping(address => uint256) public balances;
-    mapping(address => int256) payoutsTo;
+    mapping(address => uint256) payoutsTo;
 
     uint256 public totalDeposits;
     uint256 profitPerShare;
@@ -25,14 +25,14 @@ pragma solidity 0.5.8;
         nuts.transferFrom(player, address(this), amount);
         totalDeposits += amount;
         balances[player] += amount;
-        payoutsTo[player] += (int256) (profitPerShare * amount);
+        payoutsTo[player] += (profitPerShare * amount);
     }
 
     function depositFor(address player, uint256 amount) external {
         nuts.transferFrom(msg.sender, address(this), amount);
         totalDeposits += amount;
         balances[player] += amount;
-        payoutsTo[player] += (int256) (profitPerShare * amount);
+        payoutsTo[player] += (profitPerShare * amount);
     }
 
     function cashout(uint256 amount) external {
@@ -40,27 +40,27 @@ pragma solidity 0.5.8;
         claimYield();
         balances[recipient] = balances[recipient].sub(amount);
         totalDeposits = totalDeposits.sub(amount);
-        payoutsTo[recipient] -= (int256) (profitPerShare * amount);
+        payoutsTo[recipient] -= (profitPerShare * amount);
         nuts.transfer(recipient, amount);
     }
 
     function claimYield() public {
         address recipient = msg.sender;
-        uint256 dividends = (uint256) ((int256)(profitPerShare * balances[recipient]) - payoutsTo[recipient]) / magnitude;
+        uint256 dividends = ((profitPerShare * balances[recipient]) - payoutsTo[recipient]) / magnitude;
         if (dividends > 0) {
-            payoutsTo[recipient] += (int256) (dividends * magnitude);
+            payoutsTo[recipient] += (dividends * magnitude);
             nuts.transfer(recipient, dividends);
         }
     }
 
     function depositYield() external {
         address recipient = msg.sender;
-        uint256 dividends = (uint256) ((int256)(profitPerShare * balances[recipient]) - payoutsTo[recipient]) / magnitude;
+        uint256 dividends = ((profitPerShare * balances[recipient]) - payoutsTo[recipient]) / magnitude;
 
         if (dividends > 0) {
             totalDeposits += dividends;
             balances[recipient] += dividends;
-            payoutsTo[recipient] += ((int256) (dividends * magnitude) + (int256) (profitPerShare * dividends)); // Divs + Deposit
+            payoutsTo[recipient] += ((dividends * magnitude) + (profitPerShare * dividends)); // Divs + Deposit
         }
     }
 
@@ -70,7 +70,7 @@ pragma solidity 0.5.8;
     }
 
     function dividendsOf(address farmer) view public returns (uint256) {
-        return (uint256) ((int256)(profitPerShare * balances[farmer]) - payoutsTo[farmer]) / magnitude;
+        return ((profitPerShare * balances[farmer]) - payoutsTo[farmer]) / magnitude;
     }
 }
 
