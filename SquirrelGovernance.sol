@@ -129,7 +129,7 @@ contract SquirrelGovernance {
         return now / 86400;
     }
 
-    function compensationAvailable(address farm) public view returns (uint256) {
+    function compensationAvailable(address farm) external view returns (uint256) {
         return maxCompensation[farm];
     }
 
