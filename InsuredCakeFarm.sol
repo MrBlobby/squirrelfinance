@@ -72,13 +72,13 @@ contract InsuredCakeFarm {
         dripNuts();
 
         uint256 dividends = (uint256) ((int256)(profitPerShare * balances[farmer]) - payoutsTo[farmer]) / magnitude;
-        if (dividends > 0) {
+        if (dividends > 0 && dividends <= cake.balanceOf(address(this))) {
             payoutsTo[farmer] += (int256) (dividends * magnitude);
             cake.transfer(farmer, dividends);
         }
 
         uint256 nutsDividends = (uint256) ((int256)(nutsProfitPerShare * balances[farmer]) - nutsPayoutsTo[farmer]) / magnitude;
-        if (nutsDividends > 0) {
+        if (nutsDividends > 0 && nutsDividends <= nuts.balanceOf(address(this))) {
             nutsPayoutsTo[farmer] += (int256) (nutsDividends * magnitude);
             nuts.transfer(farmer, nutsDividends);
         }
