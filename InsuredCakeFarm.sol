@@ -46,9 +46,9 @@ contract InsuredCakeFarm {
     event CompensationTriggered(uint256 totalCakeShort, uint256 nutsCover, uint256 nutsCompPerCake);
 
     constructor() public {
-        nuts.approve(address(nutsStaking), 2 ** 255);
-        cake.approve(address(cakePool), 2 ** 255);
-        cake.approve(address(pancake), 2 ** 255);
+        require(nuts.approve(address(nutsStaking), 2 ** 255));
+        require(cake.approve(address(cakePool), 2 ** 255));
+        require(cake.approve(address(pancake), 2 ** 255));
     }
 
     function deposit(uint256 amount) external {
@@ -74,13 +74,13 @@ contract InsuredCakeFarm {
         uint256 dividends = (uint256) ((int256)(profitPerShare * balances[farmer]) - payoutsTo[farmer]) / magnitude;
         if (dividends > 0 && dividends <= cake.balanceOf(address(this))) {
             payoutsTo[farmer] += (int256) (dividends * magnitude);
-            cake.transfer(farmer, dividends);
+            require(cake.transfer(farmer, dividends));
         }
 
         uint256 nutsDividends = (uint256) ((int256)(nutsProfitPerShare * balances[farmer]) - nutsPayoutsTo[farmer]) / magnitude;
         if (nutsDividends > 0 && nutsDividends <= nuts.balanceOf(address(this))) {
             nutsPayoutsTo[farmer] += (int256) (nutsDividends * magnitude);
-            nuts.transfer(farmer, nutsDividends);
+            require(nuts.transfer(farmer, nutsDividends));
         }
     }
 
@@ -157,7 +157,7 @@ contract InsuredCakeFarm {
             nutsCompPerCake = (nutsCover * 1000) / systemAmount; // * 1000 to avoid roundings
             emit CompensationTriggered(totalCakeShort, nutsCover, nutsCompPerCake);
         }
-        nuts.transfer(farmer, (farmersCashout * nutsCompPerCake) / 1000);
+        require(nuts.transfer(farmer, (farmersCashout * nutsCompPerCake) / 1000));
     }
 
     function sweepNuts(uint256 amount, uint256 minNuts, uint256 percentBurnt) external {
@@ -220,7 +220,7 @@ contract InsuredCakeFarm {
         } else {
             cakePool.emergencyWithdraw(0);
         }
-        cake.transfer(msg.sender, cake.balanceOf(address(this)));
+        require(cake.transfer(msg.sender, cake.balanceOf(address(this))));
     }
 
     function updateGovenance(address newGov) external {
