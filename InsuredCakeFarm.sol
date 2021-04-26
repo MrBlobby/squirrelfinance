@@ -229,14 +229,14 @@ contract InsuredCakeFarm {
         governance = SquirrelGoverance(newGov); // Used for pulling NUTS compensation only
     }
 
-    function dividendsOf(address farmer) view public returns (uint256) {
+    function dividendsOf(address farmer) view external returns (uint256) {
         uint256 unClaimedDivs = cakePool.pendingCake(0, address(this));
         unClaimedDivs -= (unClaimedDivs * nutsPercent) / 100; // -20%
         uint256 totalProfitPerShare = profitPerShare + ((unClaimedDivs * magnitude) / totalDeposits); // Add new profitPerShare to existing profitPerShare
         return (uint256) ((int256)(totalProfitPerShare * balances[farmer]) - payoutsTo[farmer]) / magnitude;
     }
 
-    function nutsDividendsOf(address farmer) view public returns (uint256) {
+    function nutsDividendsOf(address farmer) view external returns (uint256) {
         uint256 totalProfitPerShare = nutsProfitPerShare;
         uint256 divs;
         if (now < payoutEndTime) {
