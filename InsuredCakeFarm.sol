@@ -253,17 +253,17 @@ contract InsuredCakeFarm {
 }
 
 
-contract NutsStaking {
+interface NutsStaking {
     function depositFor(address player, uint256 amount) external;
     function distributeDivs(uint256 amount) external;
 }
 
-contract OracleSimpleBNBCake {
+interface OracleSimpleBNBCake {
     function consult(address token, uint amountIn) external view returns (uint amountOut);
     function update() external;
 }
 
-contract OracleSimpleBNBNuts {
+interface OracleSimpleBNBNuts {
     function consult(address token, uint amountIn) external view returns (uint amountOut);
     function update() external;
 }
