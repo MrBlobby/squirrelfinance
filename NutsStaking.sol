@@ -23,16 +23,16 @@ pragma solidity 0.5.8;
     function receiveApproval(address player, uint256 amount, address, bytes calldata) external {
         require(msg.sender == address(nuts));
         nuts.transferFrom(player, address(this), amount);
-        totalDeposits += amount;
-        balances[player] += amount;
-        payoutsTo[player] += (profitPerShare * amount);
+        totalDeposits = totalDeposits.add(amount);
+        balances[player] = balances[player].add(amount);
+        payoutsTo[player] = payoutsTo[player].add(profitPerShare.mul(amount));
     }
 
     function depositFor(address player, uint256 amount) external {
         nuts.transferFrom(msg.sender, address(this), amount);
-        totalDeposits += amount;
-        balances[player] += amount;
-        payoutsTo[player] += (profitPerShare * amount);
+        totalDeposits = totalDeposits.add(amount);
+        balances[player] = balances[player].add(amount);
+        payoutsTo[player] = payoutsTo[player].add(profitPerShare.mul(amount));
     }
 
     function cashout(uint256 amount) external {
@@ -40,37 +40,37 @@ pragma solidity 0.5.8;
         claimYield();
         balances[recipient] = balances[recipient].sub(amount);
         totalDeposits = totalDeposits.sub(amount);
-        payoutsTo[recipient] -= (profitPerShare * amount);
+        payoutsTo[recipient] = payoutsTo[recipient].sub(profitPerShare.mul(amount));
         nuts.transfer(recipient, amount);
     }
 
     function claimYield() public {
         address recipient = msg.sender;
-        uint256 dividends = ((profitPerShare * balances[recipient]) - payoutsTo[recipient]) / magnitude;
+        uint256 dividends = (profitPerShare.mul(balances[recipient]).sub(payoutsTo[recipient])) / magnitude;
         if (dividends > 0) {
-            payoutsTo[recipient] += (dividends * magnitude);
+            payoutsTo[recipient] = payoutsTo[recipient].add(dividends.mul(magnitude));
             nuts.transfer(recipient, dividends);
         }
     }
 
     function depositYield() external {
         address recipient = msg.sender;
-        uint256 dividends = ((profitPerShare * balances[recipient]) - payoutsTo[recipient]) / magnitude;
+        uint256 dividends = (profitPerShare.mul(balances[recipient]).sub(payoutsTo[recipient])) / magnitude;
 
         if (dividends > 0) {
-            totalDeposits += dividends;
-            balances[recipient] += dividends;
-            payoutsTo[recipient] += ((dividends * magnitude) + (profitPerShare * dividends)); // Divs + Deposit
+            totalDeposits = totalDeposits.add(dividends);
+            balances[recipient] = balances[recipient].add(dividends);
+            payoutsTo[recipient] = payoutsTo[recipient].add((dividends.mul(magnitude)).add(profitPerShare.mul(dividends))); // Divs + Deposit
         }
     }
 
     function distributeDivs(uint256 amount) external {
         require(nuts.transferFrom(msg.sender, address(this), amount));
-        profitPerShare += (amount * magnitude) / totalDeposits;
+        profitPerShare = profitPerShare.add(amount.mul(magnitude) / totalDeposits);
     }
 
     function dividendsOf(address farmer) view public returns (uint256) {
-        return ((profitPerShare * balances[farmer]) - payoutsTo[farmer]) / magnitude;
+        return (profitPerShare.mul(balances[farmer]).sub(payoutsTo[farmer])) / magnitude;
     }
 }
 
