@@ -135,7 +135,7 @@ contract SquirrelGovernance {
 
 }
 
-contract Farm {
+interface Farm {
     function setWeeksRewards(uint256 amount) external;
 }
 
