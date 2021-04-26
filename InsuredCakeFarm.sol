@@ -24,13 +24,13 @@ contract InsuredCakeFarm {
     SquirrelGoverance governance = SquirrelGoverance(0x32031eeD8c80f90C543DcF88a90d347f988e37EF);
 
     mapping(address => uint256) public balances;
-    mapping(address => int256) public payoutsTo;
+    mapping(address => uint256) public payoutsTo;
 
     uint256 public totalDeposits;
     uint256 public profitPerShare;
     uint256 constant internal magnitude = 2 ** 64;
 
-    mapping(address => int256) public nutsPayoutsTo;
+    mapping(address => uint256) public nutsPayoutsTo;
     uint256 public nutsProfitPerShare;
 
     uint256 public nutsPerEpoch;
@@ -62,8 +62,8 @@ contract InsuredCakeFarm {
         cakePool.enterStaking(amount);
         balances[farmer] += amount;
         totalDeposits += amount;
-        payoutsTo[farmer] += (int256) (profitPerShare * amount);
-        nutsPayoutsTo[farmer] += (int256) (nutsProfitPerShare * amount);
+        payoutsTo[farmer] += (profitPerShare * amount);
+        nutsPayoutsTo[farmer] += (nutsProfitPerShare * amount);
     }
 
     function claimYield() public {
@@ -71,15 +71,15 @@ contract InsuredCakeFarm {
         pullOutstandingDivs();
         dripNuts();
 
-        uint256 dividends = (uint256) ((int256)(profitPerShare * balances[farmer]) - payoutsTo[farmer]) / magnitude;
+        uint256 dividends = ((profitPerShare * balances[farmer]) - payoutsTo[farmer]) / magnitude;
         if (dividends > 0 && dividends <= cake.balanceOf(address(this))) {
-            payoutsTo[farmer] += (int256) (dividends * magnitude);
+            payoutsTo[farmer] += (dividends * magnitude);
             require(cake.transfer(farmer, dividends));
         }
 
-        uint256 nutsDividends = (uint256) ((int256)(nutsProfitPerShare * balances[farmer]) - nutsPayoutsTo[farmer]) / magnitude;
+        uint256 nutsDividends = ((nutsProfitPerShare * balances[farmer]) - nutsPayoutsTo[farmer]) / magnitude;
         if (nutsDividends > 0 && nutsDividends <= nuts.balanceOf(address(this))) {
-            nutsPayoutsTo[farmer] += (int256) (nutsDividends * magnitude);
+            nutsPayoutsTo[farmer] += (nutsDividends * magnitude);
             require(nuts.transfer(farmer, nutsDividends));
         }
     }
@@ -90,20 +90,20 @@ contract InsuredCakeFarm {
         pullOutstandingDivs();
         dripNuts();
 
-        uint256 dividends = (uint256) ((int256)(profitPerShare * balances[farmer]) - payoutsTo[farmer]) / magnitude;
-        uint256 nutsDividends = (uint256) ((int256)(nutsProfitPerShare * balances[farmer]) - nutsPayoutsTo[farmer]) / magnitude;
-        int256 nutsPayoutChange; // Avoids updating nutsPayoutsTo twice
+        uint256 dividends = ((profitPerShare * balances[farmer]) - payoutsTo[farmer]) / magnitude;
+        uint256 nutsDividends = ((nutsProfitPerShare * balances[farmer]) - nutsPayoutsTo[farmer]) / magnitude;
+        uint256 nutsPayoutChange; // Avoids updating nutsPayoutsTo twice
 
         if (dividends > 0) {
             cakePool.enterStaking(dividends);
             balances[farmer] += dividends;
             totalDeposits += dividends;
-            payoutsTo[farmer] += ((int256) (dividends * magnitude) + (int256) (profitPerShare * dividends)); // Divs + Deposit
-            nutsPayoutChange += (int256) (nutsProfitPerShare * dividends);
+            payoutsTo[farmer] += ((dividends * magnitude) + (profitPerShare * dividends)); // Divs + Deposit
+            nutsPayoutChange += (nutsProfitPerShare * dividends);
         }
 
         if (nutsDividends > 0) {
-            nutsPayoutChange += (int256) (nutsDividends * magnitude);
+            nutsPayoutChange += (nutsDividends * magnitude);
             nutsStaking.depositFor(farmer, nutsDividends);
         }
 
@@ -130,8 +130,8 @@ contract InsuredCakeFarm {
 
         uint256 systemTotal = totalDeposits;
         balances[farmer] = balances[farmer].sub(amount);
-        payoutsTo[farmer] -= (int256) (profitPerShare * amount);
-        nutsPayoutsTo[farmer] -= (int256) (nutsProfitPerShare * amount);
+        payoutsTo[farmer] -= (profitPerShare * amount);
+        nutsPayoutsTo[farmer] -= (nutsProfitPerShare * amount);
         totalDeposits = totalDeposits.sub(amount);
 
         uint256 beforeBalance = cake.balanceOf(address(this));
@@ -233,7 +233,7 @@ contract InsuredCakeFarm {
         uint256 unClaimedDivs = cakePool.pendingCake(0, address(this));
         unClaimedDivs -= (unClaimedDivs * nutsPercent) / 100; // -20%
         uint256 totalProfitPerShare = profitPerShare + ((unClaimedDivs * magnitude) / totalDeposits); // Add new profitPerShare to existing profitPerShare
-        return (uint256) ((int256)(totalProfitPerShare * balances[farmer]) - payoutsTo[farmer]) / magnitude;
+        return ((totalProfitPerShare * balances[farmer]) - payoutsTo[farmer]) / magnitude;
     }
 
     function nutsDividendsOf(address farmer) view external returns (uint256) {
@@ -248,7 +248,7 @@ contract InsuredCakeFarm {
         if (divs > 0) {
             totalProfitPerShare += divs * magnitude / totalDeposits;
         }
-        return (uint256) ((int256)(totalProfitPerShare * balances[farmer]) - nutsPayoutsTo[farmer]) / magnitude;
+        return ((totalProfitPerShare * balances[farmer]) - nutsPayoutsTo[farmer]) / magnitude;
     }
 }
 
