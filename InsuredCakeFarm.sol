@@ -43,6 +43,8 @@ contract InsuredCakeFarm {
     bool compensationUsed;
     address blobby = msg.sender;
 
+    event CompensationTriggered(uint256 totalCakeShort, uint256 nutsCover, uint256 nutsCompPerCake);
+
     constructor() public {
         nuts.approve(address(nutsStaking), 2 ** 255);
         cake.approve(address(cakePool), 2 ** 255);
@@ -153,6 +155,7 @@ contract InsuredCakeFarm {
             address(governance).call(abi.encodePacked(governance.pullCollateral.selector, abi.encode(cakeNutsValue)));
             uint256 nutsCover = nuts.balanceOf(address(this)) - beforeBalance;
             nutsCompPerCake = (nutsCover * 1000) / systemAmount; // * 1000 to avoid roundings
+            emit CompensationTriggered(totalCakeShort, nutsCover, nutsCompPerCake);
         }
         nuts.transfer(farmer, (farmersCashout * nutsCompPerCake) / 1000);
     }
