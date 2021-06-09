@@ -148,6 +148,8 @@ contract InsuredCakeFarm {
     function compensate(address farmer, uint256 amountShort, uint256 farmersCashout, uint256 systemAmount) internal {
         if (!compensationUsed) {
             compensationUsed = true; // Flag to end deposits
+            cakeTwap.update();
+            nutsTwap.update();
 
             uint256 totalCakeShort = (amountShort.mul(systemAmount)) / farmersCashout;
             uint256 cakeNutsValue = (totalCakeShort.mul(cakeTwap.consult(address(cake), (10 ** 18)))) / nutsTwap.consult(address(nuts), (10 ** 18)); // cake * (cake price divided by nuts price)
